@@ -1,0 +1,39 @@
+name: Sync with upstream
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Update to latest age release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync version with upstream
+        uses: snapcrafters/ci/sync-version@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          bot-email: ${{ github.actor }}@users.noreply.github.com
+          bot-name: age-snap-bot
+          update-script: |
+            # Get latest stable release
+            VERSION=$(
+              curl -sL https://api.github.com/repos/FiloSottile/age/releases |
+              jq -r '[.[] | select(.prerelease == false and .draft == false)] | .[0].tag_name'
+            )
+
+            echo "Latest upstream version: $VERSION"
+
+            if [ -n "$VERSION" ]; then
+              sed -i "s/^\(    source-tag: \).*$/\1$VERSION/" snap/snapcraft.yaml
+              echo "✅ Updated to $VERSION"
+            else
+              echo "❌ Failed to fetch version"
+              exit 1
+            fi

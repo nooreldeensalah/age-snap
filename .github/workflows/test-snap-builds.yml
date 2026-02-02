@@ -1,0 +1,74 @@
+name: Test snap builds
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "snap/**"
+      - ".github/workflows/test-snap-builds.yml"
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build snap
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build snap
+        uses: snapcore/action-build@v1
+        id: snapcraft
+
+      - name: Show log on failure
+        if: failure()
+        run: |
+          cat /home/runner/.local/state/snapcraft/log/snapcraft*.log 2>/dev/null || true
+          exit 1
+
+      - name: Review snap
+        uses: diddlesnaps/snapcraft-review-action@v1
+        with:
+          snap: ${{ steps.snapcraft.outputs.snap }}
+          isClassic: "false"
+
+      - name: Upload snap
+        uses: actions/upload-artifact@v4
+        with:
+          name: snap-amd64
+          path: ${{ steps.snapcraft.outputs.snap }}
+          retention-days: 7
+
+  test:
+    name: Test snap
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download snap
+        uses: actions/download-artifact@v4
+        with:
+          name: snap-amd64
+
+      - name: Install snap
+        run: sudo snap install --dangerous *.snap
+
+      - name: Test commands
+        run: |
+          # Test age version
+          age-tool.age --version || age-tool.age -h | head -5
+
+          # Test keygen
+          age-tool.age-keygen -o /tmp/key.txt
+          cat /tmp/key.txt
+
+          # Test encryption/decryption
+          PUBLIC_KEY=$(grep "public key" /tmp/key.txt | awk '{print $NF}')
+          echo "Hello, age!" | age-tool.age -r "$PUBLIC_KEY" -o /tmp/test.age
+          age-tool.age -d -i /tmp/key.txt /tmp/test.age
+
+          # Test age-inspect
+          age-tool.age-inspect /tmp/test.age
+
+          echo "✅ All tests passed!"
