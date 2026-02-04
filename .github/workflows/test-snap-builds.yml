@@ -57,18 +57,18 @@ jobs:
       - name: Test commands
         run: |
           # Test age version
-          age-tool.age --version || age-tool.age -h | head -5
+          age-encryption.age --version || age-encryption.age -h | head -5
 
           # Test keygen
-          age-tool.age-keygen -o /tmp/key.txt
+          age-encryption.age-keygen -o /tmp/key.txt
           cat /tmp/key.txt
 
           # Test encryption/decryption
           PUBLIC_KEY=$(grep "public key" /tmp/key.txt | awk '{print $NF}')
-          echo "Hello, age!" | age-tool.age -r "$PUBLIC_KEY" -o /tmp/test.age
-          age-tool.age -d -i /tmp/key.txt /tmp/test.age
+          echo "Hello, age!" | age-encryption.age -r "$PUBLIC_KEY" -o /tmp/test.age
+          age-encryption.age -d -i /tmp/key.txt /tmp/test.age
 
           # Test age-inspect
-          age-tool.age-inspect /tmp/test.age
+          age-encryption.age-inspect /tmp/test.age
 
           echo "✅ All tests passed!"

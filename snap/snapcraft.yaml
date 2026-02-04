@@ -16,41 +16,30 @@ confinement: strict
 
 platforms:
   amd64:
-    build-on: [amd64]
-    build-for: [amd64]
   arm64:
-    build-on: [arm64]
-    build-for: [arm64]
   armhf:
-    build-on: [armhf]
-    build-for: [armhf]
+  ppc64el:
+  s390x:
+  riscv64:
 
 apps:
   age:
     command: bin/age
-    aliases: [age]
-    plugs:
-      - home
-      - removable-media
-      - dot-ssh
-  age-keygen:
-    command: bin/age-keygen
-    aliases: [age-keygen]
-    plugs:
-      - home
-      - removable-media
-  age-inspect:
-    command: bin/age-inspect
-    aliases: [age-inspect]
     plugs:
       - home
       - removable-media
 
-plugs:
-  dot-ssh:
-    interface: personal-files
-    read:
-      - $HOME/.ssh
+  age-keygen:
+    command: bin/age-keygen
+    plugs:
+      - home
+      - removable-media
+
+  age-inspect:
+    command: bin/age-inspect
+    plugs:
+      - home
+      - removable-media
 
 parts:
   age:
@@ -65,6 +54,7 @@ parts:
     go-buildtags:
       - osusergo
       - netgo
+
     override-build: |
       # Build all age binaries
       go build -trimpath -ldflags="-s -w" -o "$CRAFT_PART_INSTALL/bin/age" ./cmd/age
