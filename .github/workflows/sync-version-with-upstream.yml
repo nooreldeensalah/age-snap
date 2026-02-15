@@ -2,7 +2,7 @@ name: Sync with upstream
 
 on:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 0 * * 1,4" # Reduced frequency (GitHub API rate limits)
   workflow_dispatch:
 
 concurrency:
@@ -30,8 +30,9 @@ jobs:
 
             echo "Latest upstream version: $VERSION"
 
-            if [ -n "$VERSION" ]; then
-              sed -i "s/^\(    source-tag: \).*$/\1$VERSION/" snap/snapcraft.yaml
+            if [ -n "$VERSION" ] && [ "$VERSION" != "null" ]; then
+              # Robust sed replacement for source-tag
+              sed -i "s|^\(\s*source-tag:\s*\).*|\1$VERSION|" snap/snapcraft.yaml
               echo "✅ Updated to $VERSION"
             else
               echo "❌ Failed to fetch version"
