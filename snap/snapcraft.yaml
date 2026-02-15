@@ -2,7 +2,9 @@ name: age-encryption
 base: core24
 adopt-info: age
 summary: Simple, modern and secure file encryption tool
-description: A simple, modern and secure encryption tool (and Go library) with small explicit keys, no config options, and UNIX-style composability.
+description: |
+  A simple, modern and secure encryption tool (and Go library) with small
+  explicit keys, no config options, and UNIX-style composability.
 
 title: age
 license: BSD-3-Clause
@@ -13,57 +15,41 @@ contact: https://github.com/nooreldeensalah/age-snap/issues
 
 grade: stable
 confinement: strict
+compression: lzo
 
 platforms:
   amd64:
   arm64:
-  armhf:
-  ppc64el:
-  s390x:
-  riscv64:
 
 apps:
   age:
     command: bin/age
-    plugs:
-      - home
-      - removable-media
+    plugs: [home, removable-media]
 
   age-keygen:
     command: bin/age-keygen
-    plugs:
-      - home
-      - removable-media
+    plugs: [home, removable-media]
 
   age-inspect:
     command: bin/age-inspect
-    plugs:
-      - home
-      - removable-media
+    plugs: [home, removable-media]
+
 
 parts:
   age:
     plugin: go
     source: https://github.com/FiloSottile/age.git
-    source-type: git
     source-tag: v1.3.1
+    source-depth: 1
+
     build-snaps:
       - go/latest/stable
+
     build-environment:
       - CGO_ENABLED: "0"
-    go-buildtags:
-      - osusergo
-      - netgo
+
+    go-buildtags: [netgo, osusergo]
 
     override-build: |
-      # Build all age binaries
-      go build -trimpath -ldflags="-s -w" -o "$CRAFT_PART_INSTALL/bin/age" ./cmd/age
-      go build -trimpath -ldflags="-s -w" -o "$CRAFT_PART_INSTALL/bin/age-keygen" ./cmd/age-keygen
-      go build -trimpath -ldflags="-s -w" -o "$CRAFT_PART_INSTALL/bin/age-inspect" ./cmd/age-inspect
-
-      # Set version
+      craftctl default
       craftctl set version="$(git describe --tags --always | sed 's/^v//')"
-    prime:
-      - bin/age
-      - bin/age-keygen
-      - bin/age-inspect
