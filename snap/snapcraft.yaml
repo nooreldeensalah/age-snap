@@ -25,14 +25,17 @@ apps:
   age:
     command: bin/age
     plugs: [home, removable-media]
+    aliases: [age]
 
   age-keygen:
     command: bin/age-keygen
     plugs: [home, removable-media]
+    aliases: [age-keygen]
 
   age-inspect:
     command: bin/age-inspect
     plugs: [home, removable-media]
+    aliases: [age-inspect]
 
 
 parts:
